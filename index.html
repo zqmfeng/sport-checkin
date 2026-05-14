@@ -304,7 +304,7 @@
 
 <script>
     // ---------- 全局变量 ----------
-    let MEMBERS = ["队员 A", "队员 B", "队员 C", "队员 D", "队员 E", "队员 F"];
+    let MEMBERS = ["郑启明","赵乾坤","殷兆佳","毛笠","苏晨","周磊"];
     let records = [];
     let mergeMode = true;   // true: 合并导入, false: 覆盖导入
 
@@ -431,7 +431,7 @@
         if(changed){ saveMembers(); renderAll(); }
     }
     function resetNames(){
-        MEMBERS = ["队员 A","队员 B","队员 C","队员 D","队员 E","队员 F"];
+        MEMBERS = ["郑启明","赵乾坤","殷兆佳","毛笠","苏晨","周磊"];
         saveMembers();
         buildNameInputs();
         renderAll();
