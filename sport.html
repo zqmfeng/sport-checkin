@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>六人小队 · 运动打卡系统｜支持导入导出团队汇总</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+        body {
+            background: #f0f4f8;
+            margin: 0;
+            padding: 20px;
+            color: #1e2a3e;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .header h1 {
+            margin: 0 0 8px 0;
+            font-size: 1.8rem;
+        }
+        .header p {
+            margin: 0;
+            opacity: 0.85;
+        }
+        .name-editor {
+            background: white;
+            border-radius: 28px;
+            padding: 20px 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid #e2eaf5;
+        }
+        .name-editor h3 {
+            margin: 0 0 12px 0;
+            font-size: 1.2rem;
+        }
+        .name-input-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .name-input-item {
+            flex: 1;
+            min-width: 110px;
+        }
+        .name-input-item label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #4a627a;
+            margin-bottom: 4px;
+        }
+        .name-input-item input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #cbdde9;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+        .name-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 6px;
+        }
+        .name-buttons button {
+            background: #eef2ff;
+            border: none;
+            padding: 6px 20px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            color: #1e3c72;
+            font-weight: 500;
+            margin-top: 0;
+        }
+        .name-buttons button.primary {
+            background: #2a5298;
+            color: white;
+        }
+        .stats-panel {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+        .team-card, .individual-cards {
+            background: white;
+            border-radius: 28px;
+            padding: 20px;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        .team-card {
+            flex: 2;
+            min-width: 200px;
+        }
+        .individual-cards {
+            flex: 3;
+        }
+        .team-total {
+            font-size: 2.4rem;
+            font-weight: 800;
+            color: #2a5298;
+        }
+        .member-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .member-badge {
+            background: #f1f5f9;
+            border-radius: 60px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+        .form-card {
+            background: white;
+            border-radius: 32px;
+            padding: 24px;
+            margin-bottom: 28px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+        }
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: flex-end;
+        }
+        .form-group {
+            flex: 1;
+            min-width: 130px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #5b6e8c;
+            margin-bottom: 6px;
+        }
+        select, input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #cfdfed;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        button {
+            background: #2a5298;
+            border: none;
+            color: white;
+            padding: 12px 26px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 22px;
+        }
+        .danger-btn {
+            background: #dc2626;
+            margin-left: 12px;
+        }
+        .records-table-wrapper {
+            background: white;
+            border-radius: 28px;
+            overflow-x: auto;
+            border: 1px solid #eef2f8;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        th {
+            background: #f8fafc;
+            padding: 14px 10px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #ecf3f9;
+        }
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #ef4444;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 4px 12px;
+        }
+        .badge-type {
+            background: #eef2ff;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .import-export-bar {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+            justify-content: flex-end;
+        }
+        .import-export-bar button {
+            margin-top: 0;
+            background: #4b6b8f;
+        }
+        .footnote {
+            margin-top: 20px;
+            text-align: center;
+            color: #5c6f87;
+            font-size: 0.75rem;
+        }
+        @media (max-width: 700px) {
+            .stats-panel { flex-direction: column; }
+            .form-group, .import-export-bar button { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🏋️‍♂️ 六人小队 · 运动打卡舱</h1>
+        <p>基于5类运动规则 | 自动换算步数 | 支持导入/导出团队汇总</p>
+    </div>
+
+    <!-- 自定义队员名称 -->
+    <div class="name-editor">
+        <h3>✏️ 自定义队员名称</h3>
+        <div id="nameInputsContainer" class="name-input-grid"></div>
+        <div class="name-buttons">
+            <button id="saveNamesBtn" class="primary">💾 保存名称</button>
+            <button id="resetNamesBtn">🔄 重置为默认</button>
+        </div>
+    </div>
+
+    <!-- 统计面板 -->
+    <div class="stats-panel">
+        <div class="team-card">
+            <h3>🏆 团队总运动时长</h3>
+            <div class="team-total" id="teamTotalMinutes">0</div>
+            <div>🔥 累计有效分钟数</div>
+        </div>
+        <div class="individual-cards">
+            <h3>👥 个人累计时长</h3>
+            <div id="memberStatsList" class="member-stats"></div>
+        </div>
+    </div>
+
+    <!-- 打卡表单 -->
+    <div class="form-card">
+        <div class="form-row">
+            <div class="form-group"><label>📅 打卡日期</label><input type="date" id="recordDate"></div>
+            <div class="form-group"><label>👤 队员</label><select id="memberSelect"></select></div>
+            <div class="form-group"><label>🏷️ 运动类型</label><select id="sportType">
+                <option value="1">🏋️ 健身房运动 (分钟)</option>
+                <option value="2">🚶 步行/跑步 (步数)</option>
+                <option value="3">🧘 日常微运动 (分钟)</option>
+                <option value="4">🏀 多人球类 (分钟)</option>
+                <option value="5">⛷️ 专项运动 (分钟)</option>
+            </select></div>
+            <div class="form-group" id="inputFieldGroup"><label>⏱️ 运动数据</label><input type="number" id="primaryValue" placeholder="分钟/步数" step="1"></div>
+            <div class="form-group"><button id="addRecordBtn">➕ 添加记录</button><button id="clearAllBtn" class="danger-btn">🗑️ 清空</button></div>
+        </div>
+        <div class="import-export-bar">
+            <button id="exportJsonBtn">📥 导出 JSON (汇总)</button>
+            <button id="exportCsvBtn">📊 导出 CSV (Excel)</button>
+            <label for="importFileInput" class="button-label" style="background:#4b6b8f; padding:12px 26px; border-radius:40px; color:white; cursor:pointer; font-weight:600;">📂 导入数据</label>
+            <input type="file" id="importFileInput" accept=".json" style="display:none">
+            <button id="mergeToggleBtn" style="background:#6c757d;">🔄 当前模式: 合并</button>
+        </div>
+        <small style="display:block; margin-top:12px;">📌 导出/导入：团队成员可导出自己的记录，队长可导入合并汇总。导入模式可切换为“覆盖”或“合并”。</small>
+    </div>
+
+    <!-- 记录表格 -->
+    <div class="records-table-wrapper">
+        <table><thead><tr><th>日期</th><th>队员</th><th>运动类型</th><th>原始数据</th><th>有效时长(分钟)</th><th>操作</th></tr></thead>
+        <tbody id="recordsTbody"><tr><td colspan="6" style="text-align:center;">暂无打卡记录</td></tr></tbody>
+        </table>
+    </div>
+    <div class="footnote">✅ 数据自动保存至浏览器 · 导入时自动去重(按 id) · 合并模式会保留双方记录</div>
+</div>
+
+<script>
+    // ---------- 全局变量 ----------
+    let MEMBERS = ["队员 A", "队员 B", "队员 C", "队员 D", "队员 E", "队员 F"];
+    let records = [];
+    let mergeMode = true;   // true: 合并导入, false: 覆盖导入
+
+    // DOM 元素
+    const nameInputsContainer = document.getElementById("nameInputsContainer");
+    const memberSelect = document.getElementById("memberSelect");
+    const recordsTbody = document.getElementById("recordsTbody");
+    const teamTotalSpan = document.getElementById("teamTotalMinutes");
+    const memberStatsDiv = document.getElementById("memberStatsList");
+    const recordDateInput = document.getElementById("recordDate");
+    const sportTypeSelect = document.getElementById("sportType");
+    const primaryValueInput = document.getElementById("primaryValue");
+    const addBtn = document.getElementById("addRecordBtn");
+    const clearAllBtn = document.getElementById("clearAllBtn");
+    const saveNamesBtn = document.getElementById("saveNamesBtn");
+    const resetNamesBtn = document.getElementById("resetNamesBtn");
+    const exportJsonBtn = document.getElementById("exportJsonBtn");
+    const exportCsvBtn = document.getElementById("exportCsvBtn");
+    const importFileInput = document.getElementById("importFileInput");
+    const mergeToggleBtn = document.getElementById("mergeToggleBtn");
+
+    const TYPE_NAMES = {1:"健身房运动",2:"步行/跑步",3:"日常微运动",4:"多人球类",5:"专项运动"};
+
+    // 存储读写
+    function loadMembers() {
+        const stored = localStorage.getItem("teamMembersCustom");
+        if (stored) { try { let arr = JSON.parse(stored); if(arr.length===6) MEMBERS = arr; } catch(e){} }
+    }
+    function saveMembers() { localStorage.setItem("teamMembersCustom", JSON.stringify(MEMBERS)); }
+    function loadRecords() {
+        const stored = localStorage.getItem("teamSportRecords");
+        if(stored) { try { records = JSON.parse(stored); } catch(e){ records = []; } }
+        else { records = []; }
+    }
+    function saveRecords() { localStorage.setItem("teamSportRecords", JSON.stringify(records)); }
+
+    // 计算有效时长
+    function calcEffective(sportType, rawNum) {
+        if(rawNum<=0) return 0;
+        let mins = (sportType===2) ? (rawNum/2000)*10 : rawNum;
+        mins = Math.floor(mins*10)/10;
+        if((sportType===4||sportType===5) && mins>180) { alert(`⚠️ 球类/专项单次上限180分钟，已调整`); mins=180; }
+        return mins;
+    }
+
+    // 渲染全部
+    function renderAll() {
+        // 团队总时长
+        let total = records.reduce((s,r)=>s+r.effectiveMinutes,0);
+        teamTotalSpan.innerText = Math.floor(total)+" 分钟";
+        // 个人累计
+        let memberTotal = [0,0,0,0,0,0];
+        records.forEach(r=>{ if(r.memberIndex>=0 && r.memberIndex<6) memberTotal[r.memberIndex]+=r.effectiveMinutes; });
+        memberStatsDiv.innerHTML = "";
+        for(let i=0;i<6;i++){
+            let mins = memberTotal[i];
+            let display = mins>=60 ? Math.floor(mins/60)+"h "+Math.floor(mins%60)+"m" : Math.floor(mins)+"分钟";
+            let div = document.createElement("div"); div.className="member-badge";
+            div.innerHTML = `<span>${MEMBERS[i]}</span> <strong>${display}</strong>`;
+            memberStatsDiv.appendChild(div);
+        }
+        // 表格
+        if(records.length===0){
+            recordsTbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">暂无打卡记录</td></tr>`;
+        } else {
+            let sorted = [...records].sort((a,b)=>b.id-a.id);
+            recordsTbody.innerHTML = "";
+            sorted.forEach(rec=>{
+                let row = recordsTbody.insertRow();
+                row.insertCell(0).innerText = rec.date;
+                let memberName = (rec.memberIndex>=0 && rec.memberIndex<6) ? MEMBERS[rec.memberIndex] : "未知";
+                row.insertCell(1).innerText = memberName;
+                row.insertCell(2).innerHTML = `<span class="badge-type">${TYPE_NAMES[rec.sportType]||"运动"}</span>`;
+                row.insertCell(3).innerText = rec.rawInputText || (rec.rawValue+(rec.sportType===2?"步":"分钟"));
+                row.insertCell(4).innerText = Math.floor(rec.effectiveMinutes)+" 分钟";
+                let delBtn = document.createElement("button"); delBtn.innerText="🗑️"; delBtn.className="delete-btn";
+                delBtn.onclick = (function(id){ return ()=>deleteRecord(id); })(rec.id);
+                let cellDel = row.insertCell(5); cellDel.appendChild(delBtn);
+            });
+        }
+        // 刷新下拉框
+        memberSelect.innerHTML = "";
+        for(let i=0;i<6;i++){ let opt=document.createElement("option"); opt.value=i; opt.textContent=MEMBERS[i]; memberSelect.appendChild(opt); }
+    }
+
+    function deleteRecord(id){ records = records.filter(r=>r.id!==id); saveRecords(); renderAll(); }
+    function addRecord(){
+        let date = recordDateInput.value;
+        if(!date){ alert("请选择日期"); return; }
+        let memberIdx = parseInt(memberSelect.value);
+        let sportType = parseInt(sportTypeSelect.value);
+        let rawVal = parseFloat(primaryValueInput.value);
+        if(isNaN(rawVal) || rawVal<=0){ alert("请输入有效数值"); return; }
+        let rawText = sportType===2 ? Math.floor(rawVal)+"步" : rawVal+"分钟";
+        let effective = calcEffective(sportType, rawVal);
+        if(effective<=0){ alert("时长折算为0，请检查步数(≥2000)"); return; }
+        let newRecord = { id: Date.now(), date, memberIndex:memberIdx, sportType, rawValue:rawVal, effectiveMinutes:effective, rawInputText:rawText };
+        records.push(newRecord);
+        saveRecords();
+        renderAll();
+        primaryValueInput.value = "";
+    }
+    function clearAll(){ if(confirm("清空全部记录？")){ records=[]; saveRecords(); renderAll(); } }
+
+    // 名称编辑
+    function buildNameInputs(){
+        nameInputsContainer.innerHTML = "";
+        for(let i=0;i<6;i++){
+            let div = document.createElement("div"); div.className="name-input-item";
+            let label = document.createElement("label"); label.innerText = `队员 ${i+1}`;
+            let input = document.createElement("input"); input.value = MEMBERS[i]; input.dataset.idx=i;
+            div.append(label, input);
+            nameInputsContainer.appendChild(div);
+        }
+    }
+    function updateMembers(){
+        let inputs = nameInputsContainer.querySelectorAll("input");
+        let changed=false;
+        for(let i=0;i<inputs.length && i<6;i++){
+            let newName = inputs[i].value.trim();
+            if(newName && MEMBERS[i]!==newName){ MEMBERS[i]=newName; changed=true; }
+            else if(!newName && MEMBERS[i]!==`队员 ${String.fromCharCode(65+i)}`){ MEMBERS[i]=`队员 ${String.fromCharCode(65+i)}`; changed=true; }
+        }
+        if(changed){ saveMembers(); renderAll(); }
+    }
+    function resetNames(){
+        MEMBERS = ["队员 A","队员 B","队员 C","队员 D","队员 E","队员 F"];
+        saveMembers();
+        buildNameInputs();
+        renderAll();
+    }
+
+    // 导出 JSON
+    function exportJson(){
+        let dataStr = JSON.stringify(records, null, 2);
+        let blob = new Blob([dataStr], {type:"application/json"});
+        let url = URL.createObjectURL(blob);
+        let a = document.createElement("a");
+        a.href = url;
+        a.download = `team_sport_records_${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+    // 导出 CSV (含队员名称映射)
+    function exportCsv(){
+        let header = ["日期","队员索引","队员名称","运动类型","原始数据","有效时长(分钟)"];
+        let rows = records.map(r=>{
+            let memberName = (r.memberIndex>=0 && r.memberIndex<6) ? MEMBERS[r.memberIndex] : "未知";
+            return [r.date, r.memberIndex, memberName, TYPE_NAMES[r.sportType]||r.sportType, r.rawInputText, r.effectiveMinutes];
+        });
+        let csvContent = [header, ...rows].map(row=>row.map(cell=>`"${String(cell).replace(/"/g, '""')}"`).join(",")).join("\n");
+        let blob = new Blob(["\uFEFF" + csvContent], {type:"text/csv;charset=utf-8;"});
+        let url = URL.createObjectURL(blob);
+        let a = document.createElement("a");
+        a.href = url;
+        a.download = `team_sport_records_${new Date().toISOString().slice(0,10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+    // 导入 (合并/覆盖)
+    function importJson(file){
+        let reader = new FileReader();
+        reader.onload = function(e){
+            try{
+                let imported = JSON.parse(e.target.result);
+                if(!Array.isArray(imported)) throw new Error("不是数组");
+                if(mergeMode){
+                    // 合并：根据id去重，保留新导入的记录，如果id重复则覆盖原记录（以新文件为主，但也可以保留旧？为方便汇总，保留新文件并去重）
+                    let existingIds = new Set(records.map(r=>r.id));
+                    let newRecords = imported.filter(r=>!existingIds.has(r.id));
+                    records = [...records, ...newRecords];
+                } else {
+                    records = imported;
+                }
+                saveRecords();
+                renderAll();
+                alert(`导入成功！共 ${imported.length} 条记录，${mergeMode?"合并模式":"覆盖模式"} 后总计 ${records.length} 条。`);
+            } catch(err){
+                alert("JSON文件格式错误，请确保是有效的打卡数据文件");
+            }
+        };
+        reader.readAsText(file);
+    }
+    function toggleMergeMode(){
+        mergeMode = !mergeMode;
+        mergeToggleBtn.innerText = mergeMode ? "🔄 当前模式: 合并" : "⚠️ 当前模式: 覆盖";
+    }
+
+    // 初始化
+    function init(){
+        loadMembers();
+        loadRecords();
+        buildNameInputs();
+        let today = new Date().toISOString().slice(0,10);
+        if(!recordDateInput.value) recordDateInput.value = today;
+        renderAll();
+
+        addBtn.addEventListener("click", addRecord);
+        clearAllBtn.addEventListener("click", clearAll);
+        saveNamesBtn.addEventListener("click", updateMembers);
+        resetNamesBtn.addEventListener("click", resetNames);
+        exportJsonBtn.addEventListener("click", exportJson);
+        exportCsvBtn.addEventListener("click", exportCsv);
+        mergeToggleBtn.addEventListener("click", toggleMergeMode);
+        importFileInput.addEventListener("change", (e)=>{
+            if(e.target.files.length) importJson(e.target.files[0]);
+            importFileInput.value = "";
+        });
+        sportTypeSelect.addEventListener("change", ()=>{
+            let isStep = parseInt(sportTypeSelect.value)===2;
+            document.querySelector("#inputFieldGroup label").innerHTML = isStep ? "👣 步数记录" : "⏱️ 运动时长(分钟)";
+            primaryValueInput.placeholder = isStep ? "输入步数" : "分钟数";
+            primaryValueInput.value = "";
+        });
+        // 初始触发一次
+        sportTypeSelect.dispatchEvent(new Event("change"));
+    }
+    init();
+</script>
+</body>
+</html>
